@@ -14,9 +14,11 @@ class demoSys(Hybrid):
         self.dsList = []
 
     def generateList(self):
-        n0 = Node(0,self.G(),[1,2])
-        n1 = Node(1,self.G(),)
-        self.dsList
+        self.dsList.append(Node(0, self.G, [1,2]))
+        self.dsList.append(Node(1, self.G, [3]))
+        self.dsList.append(Node(2, self.G, [3]))
+        self.dsList.append(Node(3, self.G, [4]))
+        self.dsList.append(Node(3, self.G, []))
 
     def F(self, (k, t), (j, x), **p):
         tp = x
