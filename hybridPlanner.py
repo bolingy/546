@@ -97,7 +97,7 @@ class hyPlanner():
         open_list = q.PriorityQueue()
         close_list = []
         firstNode = self.dsList[self.I[0]]
-        firstNode.set_g(0)
+        firstNode.set_g(0) 
         firstNode.set_parent(None)
         self.put_to_q(open_list, firstNode)
         while not open_list.empty():
