@@ -16,7 +16,6 @@ Sam Burden, UW Seattle 2017
 import numpy as np
 from numpy import linalg as la
 import pylab as plt
-import util
 
 dbg = lambda _ : 1/0
 import sys
