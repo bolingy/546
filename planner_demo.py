@@ -7,37 +7,45 @@ import math
 from systems import Hybrid
 from copy import deepcopy
 from hybridPlanner import Node
+from hybridPlanner import hyPlanner
 
 class demoSys(Hybrid):
     def __init__(self):
-        Hybrid.__init__(self)
         self.dsList = []
+        Hybrid.__init__(self)
 
-    def generateList(self):
-        self.dsList.append(Node(0, self.G, [1,2]))
-        self.dsList.append(Node(1, self.G, [3]))
-        self.dsList.append(Node(2, self.G, [3]))
-        self.dsList.append(Node(3, self.G, [4]))
-        self.dsList.append(Node(3, self.G, []))
+    def generateSampleList(self):
+        n0 = Node(0, self.G, [1,2])
+        n0.set_imp(0, 0.1)
+        n0.set_imp(1, 0.2)
+        n1 = Node(1, self.G, [3])
+        n1.set_imp(0, 0.3)
+        n2 = Node(2, self.G, [3])
+        n2.set_imp(0,0.3)
+        n3 = Node(3, self.G, [4])
+        n3.set_imp(0,0.5)
+        n4 = Node(4, self.G, [])
+        self.dsList = [n0, n1, n2, n3, n4]
 
-    def F(self, (k, t), (j, x), **p):
+
+    '''def F(self, (k, t), (j, x), **p):
         tp = x
         if j == 0:
             dx = np.array([-5])
         else:
             dx = np.array([5])
-        return dx
+        return dx'''
 
     def G(self, (k, t), (j, x), **p):
         if j == 0:
             # off
-            g = x[0] - g2
+            g = 1#x[0] - g2
         else:
             # on
-            g = g1 - x[0]
+            g = 1#g1 - x[0]
         return g
 
-    def R(self, (k, t), (j, x), **p):
+    '''def R(self, (k, t), (j, x), **p):
         tp = x
         k_ = k + 1
         t_ = t
@@ -147,4 +155,11 @@ class demoSys(Hybrid):
 
         trjs.append(trj)
 
-        return trjs
+        return trjs'''
+
+
+if __name__ == "__main__":
+    sys = demoSys()
+    sys.generateSampleList()
+    planner = hyPlanner(sys, [0,1],[4,1])
+    planner.A_star()

@@ -25,6 +25,9 @@ class Node(object):
     def set_parent(self, parent):
         self.parent = parent
 
+    def set_imp(self, idx, value):
+        self.imp[idx] = value
+
     def check_goal(self, goal):
         return self.j == goal
 
@@ -37,7 +40,7 @@ class hyPlanner():
         self.E = system.R # reset function in hybrid system class
         self.I = s_init   # [discrete state -- j, continuous state -- x]
         self.F = s_final  # [discrete state -- j, continuous state -- x]
-        self.S # Q*X not yet define
+        #self.S # Q*X not yet define
         self.dsList = system.dsList
         # A* varibles
         self.qCount = 0
@@ -108,12 +111,16 @@ class hyPlanner():
                 print 'in goal state!'
                 return self.backtrack_sigma(current[2])
             # for each discrete transition in
+            idx = 0
+            print 'cur', len(current[2].imp)
+            print 'fir', len(firstNode.reset)
             for s in firstNode.reset:
                 child = self.dsList[s]
                 child.set_parent(current[2])
-                child.set_g(current[2].g + current[2].imp[s])
+                child.set_g(current[2].g + current[2].imp[idx])
                 # add child to open_list according to members in open and close list
                 self.add_to_open(child, open_list, close_list)
+                idx += 1
 
         print 'Fail to find a path to goal state'
         return
