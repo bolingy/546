@@ -16,14 +16,14 @@ class demoSys(Hybrid):
 
     def generateSampleList(self):
         n0 = Node(0, self.G, [1,2])
-        n0.set_imp(0, 0.1)
-        n0.set_imp(1, 0.2)
+        n0.set_imp(0, 0.1)          #imp_0,1
+        n0.set_imp(1, 0.2)          #imp_0,2
         n1 = Node(1, self.G, [3])
-        n1.set_imp(0, 0.3)
+        n1.set_imp(0, 0.7)
         n2 = Node(2, self.G, [3])
-        n2.set_imp(0,0.3)
+        n2.set_imp(0, 0.3)
         n3 = Node(3, self.G, [4])
-        n3.set_imp(0,0.5)
+        n3.set_imp(0, 0.5)
         n4 = Node(4, self.G, [])
         self.dsList = [n0, n1, n2, n3, n4]
 

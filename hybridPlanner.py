@@ -112,9 +112,7 @@ class hyPlanner():
                 return self.backtrack_sigma(current[2])
             # for each discrete transition in
             idx = 0
-            print 'cur', len(current[2].imp)
-            print 'fir', len(firstNode.reset)
-            for s in firstNode.reset:
+            for s in current[2].reset:
                 child = self.dsList[s]
                 child.set_parent(current[2])
                 child.set_g(current[2].g + current[2].imp[idx])
