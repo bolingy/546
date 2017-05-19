@@ -52,7 +52,7 @@ class RRT():
             if noCollision == False:
                 return p
 
-    def explore(self, screen, color, goalPoint, goalNode, GOAL_RADIUS = 10):
+    def explore(self, screen, color, GOAL_RADIUS = 10):
         # RRT
         while True:
             self.count = self.count + 1
@@ -72,9 +72,10 @@ class RRT():
                 newnodePoint = self.step_from_to(closestNode.point, rand)
                 self.nodes.append(Node(newnodePoint, closestNode))
                 pygame.draw.line(screen, color, closestNode.point, newnodePoint)
-                if self.point_circle_collision(newnodePoint, goalPoint.point, GOAL_RADIUS):
-                    goalNode = self.nodes[len(self.nodes) - 1]
-                    return 'goalFound'
+                pygame.display.update()
+                #if self.point_circle_collision(newnodePoint, goalPoint.point, GOAL_RADIUS):
+                #    goalNode = self.nodes[len(self.nodes) - 1]
+                #    return 'goalFound'
             else:
                 print("exploration done")
                 return;

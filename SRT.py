@@ -41,6 +41,7 @@ class SRT():
         self.fpsClock = pygame.time.Clock()
         self.screen = pygame.display.set_mode(self.windowSize)
         self.rectObs = []
+        self.GOAL_RADIUS = 10
 
     def init_obstacles(self, configNum):
         # initialized the obstacle, configNum select pre-set obstacles
@@ -72,71 +73,36 @@ class SRT():
                 return True
         return False
 
-    def rrt_demo(self):
-        initPoseSet = False
-        initialPoint = RRT.Node(None, None)
-        goalPoseSet = False
-        goalPoint = RRT.Node(None, None)
-        currentState = 'init'
-
+    def rrt_explore(self, initPose):
         nodes = []
-        self.reset()
-        goalNode = RRT.Node(None, None)
+        initialPoint = RRT.Node(initPose, None)
+        nodes.append(initialPoint)
+        pygame.draw.circle(self.screen, self.red, initialPoint.point, self.GOAL_RADIUS)
+        tree = RRT.RRT(self.XDIM, self.YDIM, 5, self.m, self.rectObs, nodes)
+        tree.explore(self.screen, self.cyan, GOAL_RADIUS=10)
+        return nodes
 
-        while True:
-            # pygame wait for inital and final point
-            if currentState == 'init':
-                pygame.display.set_caption('Select Starting Point and then Goal Point')
-                self.fpsClock.tick(10)
-            elif currentState == 'goalFound':
-                currNode = goalNode.parent
-                pygame.display.set_caption('Goal Reached')
-                while currNode.parent != None:
-                    pygame.draw.line(self.screen, self.red, currNode.point, currNode.parent.point)
-                    currNode = currNode.parent
-                optimizePhase = True
-            elif currentState == 'optimize':
-                self.fpsClock.tick(0.5)
-                pass
-            elif currentState == 'buildTree':
-                tree = RRT.RRT(self.XDIM, self.YDIM, 10, 500, self.rectObs, nodes)
-                currentState = tree.explore(self.screen, self.cyan, goalPoint, goalNode, GOAL_RADIUS = 10)
-
-            # handle events
-            for e in pygame.event.get():
-                if e.type == QUIT or (e.type == KEYUP and e.key == K_ESCAPE):
-                    sys.exit("Exiting")
-                if e.type == MOUSEBUTTONDOWN:
-                    print('mouse down')
-                    if currentState == 'init':
-                        if initPoseSet == False:
-                            nodes = []
-                            if self.collides(e.pos) == False:
-                                print('initiale point set: ' + str(e.pos))
-
-                                initialPoint = RRT.Node(e.pos, None)
-                                nodes.append(initialPoint)  # Start in the center
-                                initPoseSet = True
-                                pygame.draw.circle(self.screen, self.red, initialPoint.point, 10)
-                        elif goalPoseSet == False:
-                            print('goal point set: ' + str(e.pos))
-                            if self.collides(e.pos) == False:
-                                goalPoint = RRT.Node(e.pos, None)
-                                goalPoseSet = True
-                                pygame.draw.circle(self.screen, self.green, goalPoint.point, 10)
-                                currentState = 'buildTree'
-                    else:
-                        currentState = 'init'
-                        initPoseSet = False
-                        goalPoseSet = False
-                        self.reset()
-
-            pygame.display.update()
-            self.fpsClock.tick(10000)
-
+    def plan(self):
+        # perform SRT search
+        # clean storage
+        self.Vt = []    #trees
+        self.Et = []    #edge bwt trees
+        self.Q = []     #tree centroids
+        self.Ec = []    #
+        #
+        while len(self.Vt) < self.K:
+            
 
 
 if __name__ == '__main__':
-    srt = SRT( 10, 10, 10, 10, 10, 10)
+    srt = SRT( 10, 200, 10, 10, 10, 10)
     srt.init_obstacles(1)
-    srt.rrt_demo()
+    srt.reset()
+    srt.rrt_explore((133,390))
+    srt.rrt_explore((200, 200))
+    while True:
+        for e in pygame.event.get():
+            if e.type == QUIT:
+                sys.exit('Exiting')
+        pygame.display.update()
+        srt.fpsClock.tick(10000)
