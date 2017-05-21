@@ -4,6 +4,12 @@ from pygame import *
 from scipy import spatial
 import RRT
 
+def cast_tuple(tp):
+    temp = []
+    for v in tp:
+       temp.append(int(v))
+    return tuple(temp)
+
 '''
 K: number of milestones(tress)
 m: --------- configurations(points per tree)
@@ -73,6 +79,14 @@ class SRT():
                 return True
         return False
 
+    def get_random_clear(self):
+        # return a random point with collision check
+        while True:
+            p = random.random() * self.XDIM, random.random() * self.YDIM
+            noCollision = self.collides(p)
+            if noCollision == False:
+                return p
+
     def rrt_explore(self, initPose):
         nodes = []
         initialPoint = RRT.Node(initPose, None)
@@ -82,6 +96,7 @@ class SRT():
         tree.explore(self.screen, self.cyan, GOAL_RADIUS=10)
         return nodes
 
+
     def plan(self):
         # perform SRT search
         # clean storage
@@ -89,17 +104,30 @@ class SRT():
         self.Et = []    #edge bwt trees
         self.Q = []     #tree centroids
         self.Ec = []    #
-        #
+        # generate trees
         while len(self.Vt) < self.K:
-            
+            # build a rrt in random config
+            qT = cast_tuple(self.get_random_clear())
+            T = self.rrt_explore(qT)
+            self.Vt.append(T)
+            self.Q.append(qT)
+        # create edges between trees
+        Sclose = []
+        Srand = []
+        # find nc closest qt
+        kdtree = spatial.KDTree(self.Q)
+        for qT in self.Q:
+            distance,index = kdtree.query(qT, k=self.nc)
+
+
 
 
 if __name__ == '__main__':
-    srt = SRT( 10, 200, 10, 10, 10, 10)
+    #          K, m, nc, nr, np, ni
+    srt = SRT( 10, 200, 3, 10, 10, 10)
     srt.init_obstacles(1)
     srt.reset()
-    srt.rrt_explore((133,390))
-    srt.rrt_explore((200, 200))
+    srt.plan()
     while True:
         for e in pygame.event.get():
             if e.type == QUIT:

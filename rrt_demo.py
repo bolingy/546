@@ -161,8 +161,7 @@ def main():
                         nodes = []
                         if collides(e.pos) == False:
                             print('initiale point set: ' + str(e.pos))
-
-                            initialPoint = Node(e .pos, None)
+                            initialPoint = Node(e.pos, None)
                             nodes.append(initialPoint)  # Start in the center
                             initPoseSet = True
                             pygame.draw.circle(screen, red, initialPoint.point, GOAL_RADIUS)

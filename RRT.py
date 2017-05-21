@@ -77,5 +77,5 @@ class RRT():
                 #    goalNode = self.nodes[len(self.nodes) - 1]
                 #    return 'goalFound'
             else:
-                print("exploration done")
+                #print("exploration done")
                 return;
