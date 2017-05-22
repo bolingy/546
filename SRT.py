@@ -1,4 +1,5 @@
 import math, sys, pygame, random
+import numpy as np
 from math import *
 from pygame import *
 from scipy import spatial
@@ -96,6 +97,27 @@ class SRT():
         tree.explore(self.screen, self.cyan, GOAL_RADIUS=10)
         return nodes
 
+    def arrangeTuple(self, a, b):
+        if (a < b):
+            tp = (a, b)
+        else:
+            tp = (b, a)
+        return tp
+
+    def lineCollision(self, p1, p2):
+        step = 20
+        xdif = (p1[0] - p2[0])/step
+        ydif = (p1[1] - p2[1])/step
+        x,y = p1
+        for i in range(1,step):
+            x += xdif
+            y += ydif
+            p = cast_tuple((x,y))
+            if self.collides(p):
+                return True
+        # not collision
+        return False
+
 
     def plan(self):
         # perform SRT search
@@ -103,28 +125,69 @@ class SRT():
         self.Vt = []    #trees
         self.Et = []    #edge bwt trees
         self.Q = []     #tree centroids
-        self.Ec = []    #
-        # generate trees
+        self.Ec = []    #candidate edges between trees
+
+        # generate random trees
         while len(self.Vt) < self.K:
             # build a rrt in random config
             qT = cast_tuple(self.get_random_clear())
             T = self.rrt_explore(qT)
             self.Vt.append(T)
             self.Q.append(qT)
-        # create edges between trees
-        Sclose = []
-        Srand = []
         # find nc closest qt
         kdtree = spatial.KDTree(self.Q)
         for qT in self.Q:
+            # nc closest trees
             distance,index = kdtree.query(qT, k=self.nc)
+            curIdx = index[0]
+            distance = np.delete(distance,0,0)
+            index = np.delete(index, 0, 0)
+            closeIdx = index
+            # nr random tress
+            randomIdx = []
+            while len(randomIdx) < self.nr:
+                new = random.randint(0, self.K)
+                if not new in randomIdx:
+                    randomIdx.append(new)
+            # store edges
+            for i in closeIdx:
+                tp = self.arrangeTuple(curIdx, i)
+                if not tp in self.Ec:
+                    self.Ec.append(tp)
+            for i in randomIdx:
+                tp = self.arrangeTuple(curIdx, i)
+                if not tp in self.Ec:
+                    self.Ec.append(tp)
+
+        # for all edge in Ec find
+        for edge in self.Ec:
+            tree1 = self.Vt[edge[0]]
+            tree2 = self.Vt[edge[1]]
+            # find closest configurations
+            minDis = float("inf")
+            for n1 in tree1:
+                for n2 in tree2:
+                    dist = RRT.dist(n1.point, n2.point)
+                    if self.lineCollision(n1.point,n2.point) and dist < minDis:
+                        minDis = dist
+                        minPair = (n1, n2)
+            #
+            if
+
+
+
+
+
+
+
+
 
 
 
 
 if __name__ == '__main__':
     #          K, m, nc, nr, np, ni
-    srt = SRT( 10, 200, 3, 10, 10, 10)
+    srt = SRT( 10, 200, 3, 3, 10, 10)
     srt.init_obstacles(1)
     srt.reset()
     srt.plan()
