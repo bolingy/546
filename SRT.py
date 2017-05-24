@@ -13,6 +13,21 @@ def cast_tuple(tp):
     return tuple(temp)
 
 
+def dist( p1, p2):
+    # distance between two points
+    return sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]))
+
+def point_circle_collision(p1, p2, radius):
+    distance = dist(p1, p2)
+    if (distance <= radius):
+        return True
+    return False
+
+def text_to_screen(screen, text, point, size=40, color = (200,000,000)):
+    myfont = pygame.font.SysFont("monospace", size)
+    # render text
+    label = myfont.render(str(text), 1, color)
+    screen.blit(label, point)
 
 '''
 K: number of milestones(tress)
@@ -54,10 +69,6 @@ class SRT():
         self.screen = pygame.display.set_mode(self.windowSize)
         self.rectObs = []
         self.GOAL_RADIUS = 10
-
-    def dist(self, p1, p2):
-        # distance between two points
-        return sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]))
 
     def init_obstacles(self, configNum):
         # initialized the obstacle, configNum select pre-set obstacles
@@ -117,11 +128,12 @@ class SRT():
         step = 20
         xdif = (p1[0] - p2[0])/step
         ydif = (p1[1] - p2[1])/step
-        x,y = p1
+        x,y = p2
         for i in range(1,step):
             x += xdif
             y += ydif
             p = cast_tuple((x,y))
+            #pygame.draw.circle(self.screen, self.green, p, self.GOAL_RADIUS)
             if self.collides(p):
                 return True
         # not collision
@@ -135,6 +147,16 @@ class SRT():
             result = True
         return result
 
+    def explorationScore(self):
+        p1 = cast_tuple(self.get_random_clear())
+        count = 0
+        for p2 in self.Q:
+            if point_circle_collision(p1, p2, 100):
+                count+=1
+        pygame.draw.circle(self.screen, self.blue, p1, 100, 2)
+        text_to_screen(self.screen, count, p1)
+        return count
+
     def plan(self, init, final):
         # perform SRT search
         # clean storage
@@ -146,6 +168,8 @@ class SRT():
         # generate T_init and T_final
         Tinit = self.rrt_explore(init)
         Tfinal = self.rrt_explore(final)
+        pygame.draw.circle(self.screen, self.green, init, self.GOAL_RADIUS)
+        pygame.draw.circle(self.screen, self.blue, final, self.GOAL_RADIUS)
         self.Vt.append(Tinit), self.Vt.append(Tfinal)
         self.Q.append(init), self.Q.append(final)
         # generate random trees
@@ -168,7 +192,7 @@ class SRT():
             randomIdx = []
             while len(randomIdx) < self.nr:
                 new = random.randint(0, self.K-1)
-                if not new in randomIdx and new != curIdx:
+                if (not new in randomIdx) and new != curIdx:
                     randomIdx.append(new)
             # store edges
             for i in closeIdx:
@@ -188,9 +212,9 @@ class SRT():
             minDis = float("inf")
             for n1 in tree1:
                 for n2 in tree2:
-                    dist = self.dist(n1.point, n2.point)
-                    if self.lineCollision(n1.point,n2.point) and dist < minDis:
-                        minDis = dist
+                    distance = dist(n1.point, n2.point)
+                    if (not self.lineCollision(n1.point,n2.point)) and distance < minDis:
+                        minDis = distance
                         minPair = (n1, n2)
             # store tree edge
             if minDis != float("inf"):
@@ -198,8 +222,8 @@ class SRT():
                 self.En.append(minPair)
         print 'done finding tree edges'
         print 'all tree connection:\n', self.Et
+        print self.Ec
         # create pose list
-        poses = []
         treeConnecter = AStar.AStar(0,1,self.Q, self.Et)
         treePath = treeConnecter.plan()
         print 'tree path: ', treePath
@@ -230,15 +254,17 @@ class SRT():
                 pygame.draw.line(self.screen, self.red, currNode.point, currNode.parent.point)
                 currNode = currNode.parent
 
+        return self.explorationScore()
+
 
 
 
 if __name__ == '__main__':
     #          K, m, nc, nr, np, ni, stepSize
-    srt = SRT( 30, 25, 10, 10, 10, 10, 8)
+    srt = SRT( 30, 20, 15, 15, 10, 10, 10)
     srt.init_obstacles(1)
     srt.reset()
-    srt.plan((77,344),(652,445))
+    srt.plan((77,344),(579, 172))
     while True:
         for e in pygame.event.get():
             if e.type == QUIT:
