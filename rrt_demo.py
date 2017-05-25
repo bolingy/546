@@ -17,7 +17,7 @@ EPSILON = 10.0
 NUMNODES = 5000
 
 # pygame constant
-GAME_LEVEL = 1
+GAME_LEVEL = 3
 GOAL_RADIUS = 10
 MIN_DISTANCE_TO_ADD = 1.0
 white = 255, 255, 255
@@ -82,7 +82,14 @@ def init_obstacles(configNum):
     if (configNum == 2):
         rectObs.append(pygame.Rect((100, 50), (200, 150)))
     if (configNum == 3):
-        rectObs.append(pygame.Rect((100, 50), (200, 150)))
+        rectObs.append(pygame.Rect((20, 10), (200, 300)))
+        rectObs.append(pygame.Rect((200, 50), (200, 100)))
+        rectObs.append(pygame.Rect((500, 300), (200, 150)))
+        # self.rectObs.append(pygame.Rect((60, 80), (200, 300)))
+    if (configNum == 4):
+        rectObs.append(pygame.Rect((100, 10), (200, 100)))
+        rectObs.append(pygame.Rect((100, 300), (200, 150)))
+        rectObs.append(pygame.Rect((550, 50), (200, 150)))
 
     for rect in rectObs:
         pygame.draw.rect(screen, black, rect)

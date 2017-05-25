@@ -83,15 +83,22 @@ class SRT():
         if (configNum == 2):
             self.rectObs.append(pygame.Rect((100, 50), (200, 150)))
         if (configNum == 3):
-            self.rectObs.append(pygame.Rect((100, 50), (200, 150)))
+            self.rectObs.append(pygame.Rect((20, 10), (200, 300)))
+            self.rectObs.append(pygame.Rect((200, 50), (200, 100)))
+            self.rectObs.append(pygame.Rect((500, 300), (200, 150)))
+            #self.rectObs.append(pygame.Rect((60, 80), (200, 300)))
+        if (configNum == 4):
+            self.rectObs.append(pygame.Rect((100, 10), (200, 100)))
+            self.rectObs.append(pygame.Rect((100, 300), (200, 150)))
+            self.rectObs.append(pygame.Rect((550, 50), (200, 150)))
 
         for rect in self.rectObs:
             pygame.draw.rect(self.screen, self.black, rect)
 
-    def reset(self):
+    def reset(self, col):
         # set pygame and obstacles
         self.screen.fill(self.white)
-        self.init_obstacles(1)
+        self.init_obstacles(col)
 
     def collides(self, p):
         # check if point collides with the obstacle
@@ -261,10 +268,9 @@ class SRT():
 
 if __name__ == '__main__':
     #          K, m, nc, nr, np, ni, stepSize
-    srt = SRT( 30, 20, 15, 15, 10, 10, 10)
-    srt.init_obstacles(1)
-    srt.reset()
-    srt.plan((77,344),(579, 172))
+    srt = SRT(25, 15, 5, 5, 10, 10, 15)
+    srt.reset(3)
+    srt.plan((338, 19),(233, 159))
     while True:
         for e in pygame.event.get():
             if e.type == QUIT:

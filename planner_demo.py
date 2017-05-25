@@ -8,6 +8,9 @@ from systems import Hybrid
 from copy import deepcopy
 from hybridPlanner import Node
 from hybridPlanner import hyPlanner
+import pygame
+from pygame import *
+import SRT
 
 class demoSys(Hybrid):
     def __init__(self):
@@ -26,7 +29,6 @@ class demoSys(Hybrid):
         n3.set_imp(0, 0.5)
         n4 = Node(4, self.G, [])
         self.dsList = [n0, n1, n2, n3, n4]
-
 
     '''def F(self, (k, t), (j, x), **p):
         tp = x
@@ -162,4 +164,34 @@ if __name__ == "__main__":
     sys = demoSys()
     sys.generateSampleList()
     planner = hyPlanner(sys, [0,1],[4,1])
-    planner.A_star()
+    guide = planner.A_star()
+
+    # 0: (71, 247),(423, 245)
+    # 1: (77, 344),(579, 172)
+    # 2: (170, 17), (192,266)
+    # 3: (470, 58), (513,468)
+    # 4: (28 , 78), (381,429)
+    for n in guide:
+        #              K, m, nc, nr, np, ni, stepSize
+        srt = SRT.SRT(30, 15, 5, 5, 10, 10, 15)
+        srt.reset(n)
+        if n == 0:
+            srt.plan((71, 247),(423, 245))
+        elif n == 1:
+            srt.plan((77, 344),(579, 172))
+        elif n == 2:
+            srt.plan((170, 17), (192,266))
+        elif n == 3:
+            srt.plan((470, 58), (513,468))
+        elif n == 4:
+            srt.plan((28 , 78), (381,429))
+        flag = True
+        print 'LEVEL: ', n
+        while flag:
+            pygame.display.update()
+            srt.fpsClock.tick(10000)
+
+            for e in pygame.event.get():
+                if e.type == MOUSEBUTTONDOWN:
+                    flag = False
+

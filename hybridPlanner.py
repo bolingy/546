@@ -57,10 +57,11 @@ class hyPlanner():
         while current is not None:
             temp.append(current)
             current = current.parent
-        result = temp
+        result = []
         while not not temp:
             a = temp.pop()
-            print(a.j, ' ', round(a.g, 3))
+            result.append(a.j)
+            #print(a.j, ' ', round(a.g, 3))
         return result
 
     def add_to_open(self, child, open_list, close_list):
@@ -122,3 +123,5 @@ class hyPlanner():
 
         print 'Fail to find a path to goal state'
         return
+
+
