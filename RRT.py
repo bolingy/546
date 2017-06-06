@@ -9,12 +9,12 @@ class Node(object):
         self.parent = parent
 
 class RRT():
-    def __init__(self, xd, yd, epsilon, nodeNum, rectObs, tree):
-        self.XDIM = xd
-        self.YDIM = yd
+    def __init__(self, d, bounds, epsilon, nodeNum, collides, tree):
+        self.d = d
+        self.bounds = bounds
         self.EPSILON = epsilon
         self.NUMNODES = nodeNum
-        self.rectObs = rectObs
+        self.collides = collides
         self.count = 0
         self.nodes = tree
 

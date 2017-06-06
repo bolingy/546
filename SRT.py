@@ -38,7 +38,8 @@ np: --------- close pairs for straight-line planner
 ni: --------- iterations of tree-connection
 '''
 class SRT():
-    def __init__(self, K, m, nc, nr, np, ni, stepSize):
+    def __init__(self, d, K, m, nc, nr, np, ni, obs_check, stepSize):
+        self.d = d   # dimension
         self.K = K
         self.m = m
         self.nc = nc
@@ -50,10 +51,13 @@ class SRT():
         self.Q = []
         self.Ec = []
         self.En = []
+        self.upBound
         self.stepSize = stepSize
+        self.obs_check = obs_check
         #self.kdTree = spatial.KDTree(self.Q) # for nearest neighbor
         # pygame
         pygame.init()
+        self.demo = False
         self.XDIM = 720
         self.YDIM = 500
         self.windowSize = [self.XDIM, self.YDIM]
@@ -70,8 +74,12 @@ class SRT():
         self.rectObs = []
         self.GOAL_RADIUS = 10
 
+    def set_upper_bound(self, b_list):
+        self.upBound = b_list
+
     def init_obstacles(self, configNum):
         # initialized the obstacle, configNum select pre-set obstacles
+        self.demo = True
         self.rectObs = []
         print("config " + str(configNum))
         if (configNum == 0):
@@ -102,18 +110,33 @@ class SRT():
 
     def collides(self, p):
         # check if point collides with the obstacle
-        for rect in self.rectObs:
-            if rect.collidepoint(p) == True:
-                return True
+        if self.demo:
+            for rect in self.rectObs:
+                if rect.collidepoint(p) == True:
+                    return True
+        else:
+            if len(p) != self.d:
+                print 'point has incorrect dimention'
+            else:
+                return self.obs_check(p)
+
         return False
 
     def get_random_clear(self):
         # return a random point with collision check
         while True:
-            p = random.random() * self.XDIM, random.random() * self.YDIM
-            noCollision = self.collides(p)
-            if noCollision == False:
-                return p
+            if self.demo:
+                p = random.random() * self.XDIM, random.random() * self.YDIM
+                noCollision = self.collides(p)
+                if noCollision == False:
+                    return p
+            else:
+                temp = []
+                for i in range(self.d):
+                    temp.append(random.random() * self.upBound[i])
+                p = tuple(temp)
+                if self.collides(p):
+                    return p
 
     def rrt_explore(self, initPose):
         nodes = []
