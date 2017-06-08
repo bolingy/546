@@ -15,7 +15,11 @@ def cast_tuple(tp):
 
 def dist( p1, p2):
     # distance between two points
-    return sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]))
+    sum = 0
+    for i in range(len(p1)):
+        sum += math.pow(p1[i] - p2[i], 2)
+
+    return sqrt(sum)
 
 def point_circle_collision(p1, p2, radius):
     distance = dist(p1, p2)
@@ -38,7 +42,7 @@ np: --------- close pairs for straight-line planner
 ni: --------- iterations of tree-connection
 '''
 class SRT():
-    def __init__(self, d, K, m, nc, nr, np, ni, obs_check, stepSize):
+    def __init__(self, d, K, m, nc, nr, np, ni, obs_check, stepSize, b_list):
         self.d = d   # dimension
         self.K = K
         self.m = m
@@ -51,7 +55,7 @@ class SRT():
         self.Q = []
         self.Ec = []
         self.En = []
-        self.upBound
+        self.upBound = b_list
         self.stepSize = stepSize
         self.obs_check = obs_check
         #self.kdTree = spatial.KDTree(self.Q) # for nearest neighbor
@@ -125,29 +129,29 @@ class SRT():
     def get_random_clear(self):
         # return a random point with collision check
         while True:
-            if self.demo:
-                p = random.random() * self.XDIM, random.random() * self.YDIM
-                noCollision = self.collides(p)
-                if noCollision == False:
-                    return p
-            else:
-                temp = []
-                for i in range(self.d):
-                    temp.append(random.random() * self.upBound[i])
-                p = tuple(temp)
-                if self.collides(p):
-                    return p
+            #p = random.random() * self.XDIM, random.random() * self.YDIM
+            #noCollision = self.collides(p)
+            #if noCollision == False:
+            #    return p
+            temp = []
+            for i in range(self.d):
+                temp.append(random.random() * self.upBound[i])
+            p = tuple(temp)
+            if not self.collides(p):
+                return p
 
     def rrt_explore(self, initPose):
         nodes = []
         initialPoint = RRT.Node(initPose, None)
         nodes.append(initialPoint)
-        pygame.draw.circle(self.screen, self.red, initialPoint.point, self.GOAL_RADIUS)
-        tree = RRT.RRT(self.XDIM, self.YDIM, self.stepSize, self.m, self.rectObs, nodes)
+        if self.demo:
+            pygame.draw.circle(self.screen, self.red, initialPoint.point, self.GOAL_RADIUS)
+        tree = RRT.RRT(self.d, self.upBound, self.stepSize, self.m, self.collides, nodes)
         tree.explore(self.screen, self.cyan, GOAL_RADIUS=10)
         return nodes
 
     def arrangeTuple(self, a, b):
+        # edge index management
         if (a < b):
             tp = (a, b)
         else:
@@ -156,14 +160,15 @@ class SRT():
 
     def lineCollision(self, p1, p2):
         step = 20
-        xdif = (p1[0] - p2[0])/step
-        ydif = (p1[1] - p2[1])/step
-        x,y = p2
+        difList = []
+        for i in range(self.d):
+            difList.append((p1[i] - p2[i])/step)
+        newPoint = list(p2)
         for i in range(1,step):
-            x += xdif
-            y += ydif
-            p = cast_tuple((x,y))
-            #pygame.draw.circle(self.screen, self.green, p, self.GOAL_RADIUS)
+            newPoint = [newPoint[j] + difList[j] for j in range(len(newPoint))]
+            p = cast_tuple(tuple(newPoint))
+            #if self.demo:
+                #pygame.draw.circle(self.screen, self.green, p, self.GOAL_RADIUS)
             if self.collides(p):
                 return True
         # not collision
@@ -183,9 +188,20 @@ class SRT():
         for p2 in self.Q:
             if point_circle_collision(p1, p2, 100):
                 count+=1
-        pygame.draw.circle(self.screen, self.blue, p1, 100, 2)
+        if self.demo:
+            pygame.draw.circle(self.screen, self.blue, p1, 100, 2)
         text_to_screen(self.screen, count, p1)
         return count
+
+    def backTrack(self, currNode):
+        result = [currNode]
+        while currNode.parent != None:
+            if self.demo:
+                pygame.draw.line(self.screen, self.red, currNode.point, currNode.parent.point)
+            currNode = currNode.parent
+            result.append(currNode)
+
+        return result
 
     def plan(self, init, final):
         # perform SRT search
@@ -198,8 +214,9 @@ class SRT():
         # generate T_init and T_final
         Tinit = self.rrt_explore(init)
         Tfinal = self.rrt_explore(final)
-        pygame.draw.circle(self.screen, self.green, init, self.GOAL_RADIUS)
-        pygame.draw.circle(self.screen, self.blue, final, self.GOAL_RADIUS)
+        if self.demo:
+            pygame.draw.circle(self.screen, self.green, init, self.GOAL_RADIUS)
+            pygame.draw.circle(self.screen, self.blue, final, self.GOAL_RADIUS)
         self.Vt.append(Tinit), self.Vt.append(Tfinal)
         self.Q.append(init), self.Q.append(final)
         # generate random trees
@@ -215,6 +232,7 @@ class SRT():
             # nc closest trees
             distance,index = kdtree.query(qT, k=self.nc)
             curIdx = index[0]
+            # remove first member (current root)
             distance = np.delete(distance,0,0)
             index = np.delete(index, 0, 0)
             closeIdx = index
@@ -271,27 +289,34 @@ class SRT():
             leafEdges.append(self.En[j])
         #print leafEdges
         tempList = []
+        trj = []
         for e in leafEdges:
-            pygame.draw.line(self.screen, self.red, e[0].point, e[1].point)
-            if not e[0] in tempList:
-                tempList.append(e[0])
-            if not e[1] in tempList:
-                tempList.append(e[1])
+            if self.demo:
+                pygame.draw.line(self.screen, self.red, e[0].point, e[1].point)
+            #if not e[0] in tempList:
+            #    tempList.append(e[0])
 
-        for node in tempList:
-            currNode = node
-            while currNode.parent != None:
-                pygame.draw.line(self.screen, self.red, currNode.point, currNode.parent.point)
-                currNode = currNode.parent
+            trj+=list(reversed(self.backTrack(e[0])))
+            trj+=self.backTrack(e[1])
 
-        return self.explorationScore()
+            #if not e[1] in tempList:
+            #    tempList.append(e[1])
+
+        #for node in tempList:
+        #    currNode = node
+        #    while currNode.parent != None:
+        #        if self.demo:
+        #            pygame.draw.line(self.screen, self.red, currNode.point, currNode.parent.point)
+        #        currNode = currNode.parent
+
+        return trj, self.explorationScore()
 
 
 
 
 if __name__ == '__main__':
-    #          K, m, nc, nr, np, ni, stepSize
-    srt = SRT(25, 15, 5, 5, 10, 10, 15)
+    #         d, K, m, nc, nr, np, ni, stepSize
+    srt = SRT(2, 25, 15, 5, 5, 10, 10, 'dummy', 15, [720,500])
     srt.reset(3)
     srt.plan((338, 19),(233, 159))
     while True:

@@ -22,9 +22,14 @@ class Node(object):
         return self.pose == goal
 
 
-def cal_distance(point_a, point_b):
+def cal_distance(p1, p2):
     # calculate direct distance from point a to b
-    return math.sqrt((point_a[0] - point_b[0]) ** 2 + (point_a[1] - point_b[1]) ** 2)
+    # distance between two points
+    sum = 0
+    for i in range(len(p1)):
+        sum += math.pow(p1[i] - p2[i], 2)
+
+    return math.sqrt(sum)
 
 class AStar():
     def __init__(self, start, goal, poseList, edgeList):
@@ -89,8 +94,7 @@ class AStar():
 
     def cal_h(self, point):
         # calculate direct distance from point to goal
-        c = math.sqrt((self.goalPose[0] - point[0]) ** 2 + (self.goalPose[1] - point[1]) ** 2)
-        return c
+        return cal_distance(point, self.goalPose)
 
     def plan(self):
         open_list = q.PriorityQueue()
@@ -132,6 +136,6 @@ class AStar():
 
 '''if __name__ == '__main__':
     edges = [(0,1), (0,2), (1,3), (2,3), (3,4)]
-    poses = [(1,1),(2,4),(2,0),(3,1),(4,3)]
+    poses = [(1,1,4),(2,4,7),(2,0,1),(3,1,8),(4,3,10)]
     planner = AStar(0,4,poses,edges)
     planner.plan()'''
